@@ -1,0 +1,10 @@
+.taskCompleted {
+    -fx-text-fill: #808080;
+    -fx-strikethrough: true;
+    -fx-font-style: italic;
+}
+
+.taskToComplete {
+	-fx-text-fill: #FFCC00;
+	-fx-font-weight: bold;
+}
