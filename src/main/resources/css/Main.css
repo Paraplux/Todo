@@ -8,3 +8,12 @@
 	-fx-text-fill: #FFCC00;
 	-fx-font-weight: bold;
 }
+
+.toggle-button {
+	-fx-graphic: url('/../images/notComplete.png');
+	-fx-cursor: hand;  
+}
+
+.toggle-button:selected {
+	-fx-graphic: url('/../images/notComplete.png');
+}
