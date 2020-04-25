@@ -1,19 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Bhaina+2:wght@500&display=swap');
+
 .taskCompleted {
-    -fx-text-fill: #808080;
-    -fx-strikethrough: true;
     -fx-font-style: italic;
 }
 
 .taskToComplete {
-	-fx-text-fill: #FFCC00;
 	-fx-font-weight: bold;
 }
 
 .toggle-button {
-	-fx-graphic: url('/../images/notComplete.png');
 	-fx-cursor: hand;  
-}
-
-.toggle-button:selected {
-	-fx-graphic: url('/../images/notComplete.png');
 }

@@ -9,11 +9,14 @@ import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -25,7 +28,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -38,18 +43,19 @@ public class GUI extends Application {
 	//DATA
 	static JsonDBTemplate database;
 	static List<HBox> todoItemsArray;
-
+	static IntegerProperty completeTasksSize = new SimpleIntegerProperty();
+	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
 		VBox root = new VBox(10);
-//		Parent root = FXMLLoader.load(getClass().getResource("/fxml/Main.fxml"));
 		primaryStage.setTitle("Todo List");
 
         titleLabel = new Label("Todo List");
         titleLabel.setId("titleLabel");
         
-        infoLabel = new Label("Il vous reste " + database.findAll(TodoItem.class).size() + " tâches à accomplir");
+        infoLabel = new Label();
+        infoLabel.setText("Il vous reste " + completeTasksSize.getValue() + " tâches à accomplir");
         infoLabel.setId("infoLabel");
         
         VBox tasksContainer = new VBox(10);
@@ -98,14 +104,16 @@ public class GUI extends Application {
 		} else {
 			svgImage.setContent(completePath); 				    				
 		}
-
+		if(status.getValue() == true) button.setSelected(true);
+		task.setText(item.getTitle() + " / state : " + status.getValue());
+		task.setFont(Font.font("Baloo Bhaina 2", 14));
+		refreshStyle(status, task);
 		
 		 // Add change listener
 		status.addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 System.out.println("changed " + oldValue + "->" + newValue);
-    			toggleItem(item.getId(), new SimpleBooleanProperty(newValue));
     			refreshStyle(status, task);
     			task.setText(item.getTitle() + " / state : " + status.getValue());
     			if (status.getValue() == false) {
@@ -113,17 +121,18 @@ public class GUI extends Application {
     			} else {
     				svgImage.setContent(completePath); 				    				
     			}
-            }
+    			infoLabel.setText("Il vous reste " + getCompleteTasksSize().getValue() + " tâches à accomplir");
+    		}
         });
 		
-		if(status.getValue() == true) button.setSelected(true);
-		task.setText(item.getTitle() + " / state : " + status.getValue());
-		refreshStyle(status, task);
-		
-		button.setOnAction((e) -> {status.setValue(!status.getValue());});
+		button.setOnAction((e) -> {
+			toggleItem(item.getId(), status);
+			status.setValue(!status.getValue());
+			getCompleteTasksSize();
+		});
 		
 		line.getChildren().addAll(button, task);
-		line.getStyleClass().add("taskLine");
+		line.setAlignment(Pos.CENTER_LEFT);;
 		return line;
 	}
 
@@ -137,6 +146,8 @@ public class GUI extends Application {
     	
     	//OK
     	createTable();
+    	
+    	completeTasksSize = getCompleteTasksSize();
     }
 	
     public static void runApp(){ launch(); }
@@ -212,18 +223,35 @@ public class GUI extends Application {
 		itemToToggle.setId(itemID);
 		itemToToggle.setTitle(itemToToggleTitle);
 		itemToToggle.setCompleted(!itemToToggleStatus.getValue());
-		
+		System.out.println("Item Toggled");
 	    database.upsert(itemToToggle);
 	}
 	
 	private static void refreshStyle(BooleanProperty todoItemStatus, Text todoItemText) {
 		if (todoItemStatus.getValue() == false) {
+			todoItemText.setFill(Color.web("#202020"));
 			todoItemText.getStyleClass().remove("taskCompleted");
 			todoItemText.getStyleClass().add("taskToComplete");
 		} else if (todoItemStatus.getValue() == true) {
+			todoItemText.setFill(Color.web("#808080"));
 			todoItemText.getStyleClass().remove("taskToComplete");		
 			todoItemText.getStyleClass().add("taskCompleted");		
 		}
+	}
+	
+	private static IntegerProperty getCompleteTasksSize () {
+		IntegerProperty size = new SimpleIntegerProperty(0);
+		
+		for (TodoItem task : database.findAll(TodoItem.class)) {
+			System.out.println("Status de la tâche :" + task.isCompleted());
+			if (task.isCompleted() == false) {
+				System.out.println("Element non completé trouvé!");
+				size.setValue(size.getValue() + 1);;
+			}
+		}
+		System.out.println(size.getValue());
+		
+		return size;
 	}
 	
 }
